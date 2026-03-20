@@ -48,3 +48,33 @@ python modified_codebase/pow_sampling_mcmc/run_sampling.py \
 1. 新数据源：继承 `DatasetAdapter`，实现 `load()`。
 2. 新 Prompt：把 `run_framework` 的 `prompt_builder` 参数换成自己的函数。
 3. 新后处理：给 `postprocess` 传入解析函数（如提取 boxed answer）。
+
+## Step 1: Data processing for instruction-answer pairs
+
+- Script: `data_process/build_instruction_answer_dataset.py`
+- Purpose: Convert raw mode-choice table data into English instruction-answer pairs.
+- It resolves ORIGIN/DESTIN admin codes using a region JSON and supports optional strong-LLM polishing.
+
+Example (JSON output):
+
+```bash
+python modified_codebase/data_process/build_instruction_answer_dataset.py \
+  --input_csv path/to/raw_mode_choice.csv \
+  --region_json path/to/regions.json \
+  --output_path modified_codebase/data_process/processed/instruction_answer.json \
+  --output_format json
+```
+
+Example with LLM polishing:
+
+```bash
+OPENAI_API_KEY=your_key \
+python modified_codebase/data_process/build_instruction_answer_dataset.py \
+  --input_csv path/to/raw_mode_choice.csv \
+  --region_json path/to/regions.json \
+  --output_path modified_codebase/data_process/processed/instruction_answer.csv \
+  --output_format csv \
+  --use_llm \
+  --llm_model deepseek-chat \
+  --api_base https://api.deepseek.com
+```
