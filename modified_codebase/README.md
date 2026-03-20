@@ -6,6 +6,7 @@
 
 - `pow_sampling_mcmc/framework.py`
   - 抽离了 `mcmc_power_samp` 主逻辑，仅保留 power-sampling MCMC 所需的核心能力。
+  - 新增 `mcmc_power_samp_with_external_signal`：可加载 `external_signal` 训练好的分类器，将外部模型 logits 与 MCMC 内部 answer logits 的差异组成 reward，并注入 MH 接受准则。
   - 提供了统一的数据接口 `DatasetAdapter`。
   - 内置 `JSONListAdapter` 和 `HFDatasetAdapter`，用于接入本地 JSON 或 HuggingFace datasets。
   - 提供 `run_framework` 统一执行入口，方便未来增加新数据集和后处理函数。
