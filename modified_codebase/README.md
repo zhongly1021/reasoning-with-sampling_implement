@@ -78,3 +78,41 @@ python modified_codebase/data_process/build_instruction_answer_dataset.py \
   --llm_model deepseek-chat \
   --api_base https://api.deepseek.com
 ```
+
+## Step 2: External signal models (classification heads)
+
+- Folder: `external_signal/`
+- `model.py`
+  - `BertTravelModeClassifier`: BERT + classification head (predict travel mode from instruction).
+  - `FrozenLLMTravelModeClassifier`: frozen small LLM encoder (e.g., Qwen-1.5B) + trainable classification head.
+- `train.py`
+  - Trains either `bert` or `frozen_llm` on instruction-answer pairs.
+  - Converts `answer` to categorical labels (`Auto`, `Riding`, `Subway`, `Bus`, `Subway&Bus`, `Taxi`, `Cycling`, `Walk`).
+- `test.py`
+  - Loads checkpoint and reports accuracy + per-class metrics.
+
+Example training:
+
+```bash
+python modified_codebase/external_signal/train.py \
+  --data_path modified_codebase/data_process/processed/instruction_answer.json \
+  --model_type bert \
+  --model_name bert-base-uncased
+```
+
+Example training with frozen small LLM:
+
+```bash
+python modified_codebase/external_signal/train.py \
+  --data_path modified_codebase/data_process/processed/instruction_answer.json \
+  --model_type frozen_llm \
+  --model_name Qwen/Qwen2.5-1.5B-Instruct
+```
+
+Example test:
+
+```bash
+python modified_codebase/external_signal/test.py \
+  --data_path path/to/test_instruction_answer.json \
+  --checkpoint_path modified_codebase/external_signal/checkpoints/best_model.pt
+```
