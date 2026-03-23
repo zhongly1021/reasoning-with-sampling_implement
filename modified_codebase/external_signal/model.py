@@ -58,6 +58,7 @@ class BertTravelModeClassifier(nn.Module):
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
         outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
+        # bert 用cls收集前面所有的information
         cls = outputs.last_hidden_state[:, 0, :]
         logits = self.classifier(self.dropout(cls))
         return logits
@@ -77,6 +78,9 @@ class FrozenLLMTravelModeClassifier(nn.Module):
         for param in self.encoder.parameters():
             param.requires_grad = False
 
+        # 冻结参数
+        for param in self.encoder.parameters():
+            param.requires_grad = False
         hidden_size = self.encoder.config.hidden_size
         self.dropout = nn.Dropout(dropout)
         self.classifier = nn.Linear(hidden_size, num_labels)

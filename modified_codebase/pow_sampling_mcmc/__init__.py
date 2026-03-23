@@ -7,6 +7,7 @@ from .framework import (
     load_external_signal_bundle,
     mcmc_power_samp,
     mcmc_power_samp_with_external_signal,
+    mcmc_power_samp,
     run_framework,
 )
 
@@ -19,5 +20,6 @@ __all__ = [
     "load_external_signal_bundle",
     "mcmc_power_samp",
     "mcmc_power_samp_with_external_signal",
+    "mcmc_power_samp",
     "run_framework",
 ]

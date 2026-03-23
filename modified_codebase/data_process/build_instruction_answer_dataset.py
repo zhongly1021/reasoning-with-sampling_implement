@@ -20,6 +20,7 @@ except ImportError:  # optional dependency
     OpenAI = None
 
 
+# mode名字
 MODE_CODE_TO_NAME = {
     "A": "Auto",
     "R": "Riding",
@@ -31,6 +32,7 @@ MODE_CODE_TO_NAME = {
     "W": "Walk",
 }
 
+# 出发目的
 TPN_MAP = {
     1: "Business",
     2: "Leisure",
@@ -41,6 +43,7 @@ TPN_MAP = {
     7: "Returning home",
 }
 
+# departure time mapping dict
 DT_MAP = {
     1: "00:00-06:00",
     2: "06:00-12:00",
@@ -70,6 +73,7 @@ class PromptFields:
     destination_name: str
 
 
+# age mapping
 def infer_age_group(row: pd.Series) -> str:
     if int(row.get("AGE01", 0)) == 1:
         return "0-19"
@@ -82,6 +86,7 @@ def infer_age_group(row: pd.Series) -> str:
     return "Unknown"
 
 
+# income group
 def infer_income_group(row: pd.Series) -> str:
     if int(row.get("INC1", 0)) == 1:
         return "<1400"
@@ -96,6 +101,7 @@ def build_admin_code_to_name(region_json_path: str) -> Dict[str, str]:
     with open(region_json_path, "r", encoding="utf-8") as f:
         payload = json.load(f)
 
+    # 可能存在过大的数据集//
     mapping: Dict[str, str] = {}
     for region in payload.get("regions", []):
         mapping[str(region.get("adm_cd", ""))] = str(region.get("adm_nm", ""))
@@ -133,6 +139,7 @@ def collect_prompt_fields(row: pd.Series, code_to_name: Dict[str, str]) -> Promp
         nbus=float(row.get("NBUS", 0.0)),
         npark=float(row.get("NPARK", 0.0)),
         nbike=float(row.get("NBIKE", 0.0)),
+        # code to name---json document!
         origin_name=resolve_place_name(row.get("ORIGIN"), code_to_name),
         destination_name=resolve_place_name(row.get("DESTIN"), code_to_name),
     )
@@ -143,6 +150,30 @@ def build_instruction(fields: PromptFields) -> str:
     has_license = "Yes" if fields.lic == 1 else "No"
     is_first_trip = "Yes" if fields.first_trip == 1 else "No"
 
+    
+    # change to role play style
+    # Availabel travel mode应该也被当作一个可选项 根据数据确定'available_mode'
+    # prompt style: https://github.com/tsinghua-fib-lab/CoPB ---计划行为理论 
+    #3 questions
+    '''
+    Q: What are the preferred activities of a person with <Profile>:[manager, 
+    high income, female...] ? 
+    A: <Preference>: [sport, shopping...]
+
+    Q: What routines do a person with <Profile>:[manager, high income, 
+    female...] typically have? 
+    A: <Routine>: [Going to work at 9AM, Exercise at 5PM...]
+
+    Q: Please evaluate the likelihood that a person with <Profile> , <Routine>, 
+    <Behavior History> will have the <Intention> next?
+    A: <Perceived Likelihood>: [work: unlikely, shopping: very likely,...]
+
+    Reasoning:
+    Q: Please select the next <Intention> 
+    for a person with <Preference>, 
+    <Routine>, <Perceived Likelihood>.
+    A: Eat
+    '''
     return (
         "You are a transportation planning expert. "
         "Given traveler attributes and trip context, predict the most likely travel mode.\n\n"
@@ -175,6 +206,7 @@ def build_instruction(fields: PromptFields) -> str:
         "Reasoning: <your analysis>\n"
         "Choice: <one mode name from the list>"
     )
+    # one mode name from the available mode name list
 
 
 def normalize_answer(raw: Any) -> str:
@@ -189,6 +221,7 @@ def normalize_answer(raw: Any) -> str:
 
 
 def maybe_polish_with_llm(
+def polish_instruction_with_llm(
     instruction: str,
     answer: str,
     model_name: str,
@@ -243,6 +276,7 @@ def convert_rows(
 
         if use_llm:
             instruction, answer = maybe_polish_with_llm(
+            instruction, answer = polish_instruction_with_llm(
                 instruction=instruction,
                 answer=answer,
                 model_name=llm_model,
