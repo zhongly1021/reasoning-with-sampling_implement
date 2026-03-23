@@ -58,6 +58,7 @@ class BertTravelModeClassifier(nn.Module):
 
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
         outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
+        # bert 用cls收集前面所有的information
         cls = outputs.last_hidden_state[:, 0, :]
         logits = self.classifier(self.dropout(cls))
         return logits
