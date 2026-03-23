@@ -19,6 +19,7 @@ try:
 except ImportError:  # optional dependency
     OpenAI = None
 
+
 # mode名字
 MODE_CODE_TO_NAME = {
     "A": "Auto",
@@ -30,6 +31,7 @@ MODE_CODE_TO_NAME = {
     "C": "Cycling",
     "W": "Walk",
 }
+
 # 出发目的
 TPN_MAP = {
     1: "Business",
@@ -40,6 +42,7 @@ TPN_MAP = {
     6: "Other",
     7: "Returning home",
 }
+
 # departure time mapping dict
 DT_MAP = {
     1: "00:00-06:00",
@@ -69,6 +72,7 @@ class PromptFields:
     origin_name: str
     destination_name: str
 
+
 # age mapping
 def infer_age_group(row: pd.Series) -> str:
     if int(row.get("AGE01", 0)) == 1:
@@ -80,6 +84,7 @@ def infer_age_group(row: pd.Series) -> str:
     if int(row.get("AGE6", 0)) == 1:
         return "60+"
     return "Unknown"
+
 
 # income group
 def infer_income_group(row: pd.Series) -> str:
@@ -95,6 +100,7 @@ def infer_income_group(row: pd.Series) -> str:
 def build_admin_code_to_name(region_json_path: str) -> Dict[str, str]:
     with open(region_json_path, "r", encoding="utf-8") as f:
         payload = json.load(f)
+
     # 可能存在过大的数据集//
     mapping: Dict[str, str] = {}
     for region in payload.get("regions", []):
@@ -143,6 +149,7 @@ def build_instruction(fields: PromptFields) -> str:
     gender = "Male" if fields.male == 1 else "Female"
     has_license = "Yes" if fields.lic == 1 else "No"
     is_first_trip = "Yes" if fields.first_trip == 1 else "No"
+
     
     # change to role play style
     # Availabel travel mode应该也被当作一个可选项 根据数据确定'available_mode'
@@ -213,6 +220,7 @@ def normalize_answer(raw: Any) -> str:
     return value
 
 
+def maybe_polish_with_llm(
 def polish_instruction_with_llm(
     instruction: str,
     answer: str,
@@ -267,6 +275,7 @@ def convert_rows(
         answer = normalize_answer(row.get("MChoice"))
 
         if use_llm:
+            instruction, answer = maybe_polish_with_llm(
             instruction, answer = polish_instruction_with_llm(
                 instruction=instruction,
                 answer=answer,

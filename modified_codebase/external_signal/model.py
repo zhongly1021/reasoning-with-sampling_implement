@@ -75,6 +75,9 @@ class FrozenLLMTravelModeClassifier(nn.Module):
     ):
         super().__init__()
         self.encoder = AutoModel.from_pretrained(llm_name, trust_remote_code=True)
+        for param in self.encoder.parameters():
+            param.requires_grad = False
+
         # 冻结参数
         for param in self.encoder.parameters():
             param.requires_grad = False

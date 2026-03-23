@@ -55,6 +55,7 @@ python modified_codebase/pow_sampling_mcmc/run_sampling.py \
 - Script: `data_process/build_instruction_answer_dataset.py`
 - Purpose: Convert raw mode-choice table data into English instruction-answer pairs.
 - It resolves ORIGIN/DESTIN admin codes using a region JSON and supports optional strong-LLM polishing.
+- Notebook: `data_process/aggregate_discrete_choice.ipynb` for aggregating long-format discrete-choice raw rows (one alternative per row) into one instruction-answer sample per choice set.
 
 Example (JSON output):
 
